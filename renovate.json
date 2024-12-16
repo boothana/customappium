@@ -1,0 +1,29 @@
+{
+  "extends": [
+    "config:recommended",
+    ":semanticCommitTypeAll(chore)",
+    ":pinAllExceptPeerDependencies"
+  ],
+  "labels": ["dependencies"],
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "matchCurrentVersion": "!/^0/",
+      "automerge": true
+    },
+    {
+      "matchPackageNames": ["antd", "cheerio", "eslint"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    },
+    {
+      "matchPackageNames": ["appium", "@appium/**"],
+      "groupName": "Appium-related packages",
+      "groupSlug": "appium"
+    }
+  ],
+  "baseBranches": ["main"],
+  "semanticCommits": "enabled",
+  "schedule": ["after 10pm", "before 5:00am"],
+  "timezone": "America/Vancouver"
+}
