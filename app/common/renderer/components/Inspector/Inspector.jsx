@@ -40,6 +40,7 @@ import {sendtonogrunt} from './nogruntmod.js';
 import {useDispatch} from 'react-redux';
 
 const {SELECT, TAP_SWIPE} = SCREENSHOT_INTERACTION_MODE;
+
 const downloadXML = (sourceXML) => {
   const href = 'data:application/xml;charset=utf-8,' + encodeURIComponent(sourceXML);
   const filename = `app-source-${new Date().toJSON()}.xml`;
@@ -82,7 +83,15 @@ const Inspector = (props) => {
   if (props.recordedActions.length > 0) {
     const {host, port, path, https, desiredCapabilities} = props.sessionDetails;
     const recordedActions = props.recordedActions;
-    sendtonogrunt(host, port, path, https, desiredCapabilities, recordedActions);
+    sendtonogrunt(
+      host,
+      port,
+      path,
+      https,
+      selectedElement.strategyMap,
+      desiredCapabilities,
+      recordedActions,
+    );
 
     //once actions are sent, clear them
     props.clearRecording();
@@ -230,6 +239,16 @@ const Inspector = (props) => {
     }
   }, [showKeepAlivePrompt]);
 
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+
+    if (token) {
+      sessionStorage.setItem('token', token);
+    } else {
+      console.log('NO TOKEN FOUND IN URL');
+    }
+  }, []);
   const screenShotControls = (
     <div className={InspectorStyles['screenshot-controls']}>
       <Space size="middle">
@@ -278,6 +297,10 @@ const Inspector = (props) => {
         id="screenshotContainer"
         className={InspectorStyles['screenshot-container']}
         ref={screenshotContainerEl}
+        style={{
+          height: '100%',
+          width: '100%',
+        }}
       >
         {screenShotControls}
         {showScreenshot && <Screenshot {...props} scaleRatio={scaleRatio} />}
@@ -300,7 +323,7 @@ const Inspector = (props) => {
               disabled: !showScreenshot,
               children: (
                 <div className="action-row">
-                  <div className="action-col">
+                  {/* <div className="action-col">
                     <Card
                       title={
                         <span>
@@ -338,10 +361,11 @@ const Inspector = (props) => {
                     >
                       <Source {...props} />
                     </Card>
-                  </div>
+                  </div> */}
                   <div
                     id="selectedElementContainer"
                     className={`${InspectorStyles['interaction-tab-container']} ${InspectorStyles['element-detail-container']} action-col`}
+                    style={{}}
                   >
                     <Card
                       title={
@@ -358,74 +382,74 @@ const Inspector = (props) => {
                 </div>
               ),
             },
-            {
-              label: t('Commands'),
-              key: INSPECTOR_TABS.COMMANDS,
-              disabled: !showScreenshot,
-              children: (
-                <Card
-                  title={
-                    <span>
-                      <ThunderboltOutlined /> {t('Execute Commands')}
-                    </span>
-                  }
-                  className={InspectorStyles['interaction-tab-card']}
-                >
-                  <Commands {...props} />
-                </Card>
-              ),
-            },
-            {
-              label: t('Gestures'),
-              key: INSPECTOR_TABS.GESTURES,
-              disabled: !showScreenshot,
-              children: isGestureEditorVisible ? (
-                <Card
-                  title={
-                    <span>
-                      <HighlightOutlined /> {t('Gesture Builder')}
-                    </span>
-                  }
-                  className={InspectorStyles['interaction-tab-card']}
-                >
-                  <GestureEditor {...props} />
-                </Card>
-              ) : (
-                <Card
-                  title={
-                    <span>
-                      <HighlightOutlined /> {t('Saved Gestures')}
-                    </span>
-                  }
-                  className={InspectorStyles['interaction-tab-card']}
-                >
-                  <SavedGestures {...props} />
-                </Card>
-              ),
-            },
-            {
-              label: t('Recorder'),
-              key: INSPECTOR_TABS.RECORDER,
-              disabled: !showScreenshot,
-              children: <Recorder {...props} />,
-            },
-            {
-              label: t('Session Information'),
-              key: INSPECTOR_TABS.SESSION_INFO,
-              disabled: !showScreenshot,
-              children: (
-                <Card
-                  title={
-                    <span>
-                      <InfoCircleOutlined /> {t('Session Information')}
-                    </span>
-                  }
-                  className={InspectorStyles['interaction-tab-card']}
-                >
-                  <SessionInfo {...props} />
-                </Card>
-              ),
-            },
+            // {
+            //   label: t('Commands'),
+            //   key: INSPECTOR_TABS.COMMANDS,
+            //   disabled: !showScreenshot,
+            //   children: (
+            //     <Card
+            //       title={
+            //         <span>
+            //           <ThunderboltOutlined /> {t('Execute Commands')}
+            //         </span>
+            //       }
+            //       className={InspectorStyles['interaction-tab-card']}
+            //     >
+            //       <Commands {...props} />
+            //     </Card>
+            //   ),
+            // },
+            // {
+            //   label: t('Gestures'),
+            //   key: INSPECTOR_TABS.GESTURES,
+            //   disabled: !showScreenshot,
+            //   children: isGestureEditorVisible ? (
+            //     <Card
+            //       title={
+            //         <span>
+            //           <HighlightOutlined /> {t('Gesture Builder')}
+            //         </span>
+            //       }
+            //       className={InspectorStyles['interaction-tab-card']}
+            //     >
+            //       <GestureEditor {...props} />
+            //     </Card>
+            //   ) : (
+            //     <Card
+            //       title={
+            //         <span>
+            //           <HighlightOutlined /> {t('Saved Gestures')}
+            //         </span>
+            //       }
+            //       className={InspectorStyles['interaction-tab-card']}
+            //     >
+            //       <SavedGestures {...props} />
+            //     </Card>
+            //   ),
+            // },
+            // {
+            //   label: t('Recorder'),
+            //   key: INSPECTOR_TABS.RECORDER,
+            //   disabled: !showScreenshot,
+            //   children: <Recorder {...props} />,
+            // },
+            // {
+            //   label: t('Session Information'),
+            //   key: INSPECTOR_TABS.SESSION_INFO,
+            //   disabled: !showScreenshot,
+            //   children: (
+            //     <Card
+            //       title={
+            //         <span>
+            //           <InfoCircleOutlined /> {t('Session Information')}
+            //         </span>
+            //       }
+            //       className={InspectorStyles['interaction-tab-card']}
+            //     >
+            //       <SessionInfo {...props} />
+            //     </Card>
+            //   ),
+            // },
           ]}
         />
       </div>

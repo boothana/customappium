@@ -6,7 +6,6 @@ import {DEFAULT_SWIPE, DEFAULT_TAP, SCREENSHOT_INTERACTION_MODE} from '../../con
 import {INSPECTOR_TABS} from '../../constants/session-inspector';
 import HighlighterRects from './HighlighterRects.jsx';
 import styles from './Inspector.module.css';
-import {findAndAssign} from '../../actions/Inspector.js';
 
 const {POINTER_UP, POINTER_DOWN, PAUSE, POINTER_MOVE} = POINTER_TYPES;
 const {TAP, SELECT, SWIPE, TAP_SWIPE} = SCREENSHOT_INTERACTION_MODE;
@@ -30,26 +29,14 @@ const Screenshot = (props) => {
     t,
   } = props;
 
-  //console log the selected element
-  // console.log('Selected Element', props.selectedElement);
-
   const containerEl = useRef();
   const [x, setX] = useState();
   const [y, setY] = useState();
 
   const handleScreenshotClick = async () => {
-    const {selectedElementId} = props;
     const {tapTickCoordinates} = props;
     if (selectedTick) {
       await tapTickCoordinates(x, y);
-    }
-    // // console.log('Selected Element', props.selectedElement);
-    // const {selectedElementId} = props;
-    // // console.log('Selected Element Id', selectedElementId);
-    if (selectedElementId) {
-      //call the findAndAssign method
-      // applyClientMethod({methodName: 'findAndAssign', elementId: selectedElementId});
-      applyClientMethod({methodName: 'click', elementId: selectedElementId});
     }
   };
 
@@ -75,6 +62,8 @@ const Screenshot = (props) => {
 
   const handleDoTap = async (tapLocal) => {
     const {POINTER_NAME, DURATION_1, DURATION_2, BUTTON} = DEFAULT_TAP;
+    //console log the coordinates x and y
+    console.log('Coordinates x and y:', tapLocal.x, tapLocal.y);
     await applyClientMethod({
       methodName: TAP,
       args: [
@@ -92,6 +81,7 @@ const Screenshot = (props) => {
 
   const handleDoSwipe = async (swipeEndLocal) => {
     const {POINTER_NAME, DURATION_1, DURATION_2, BUTTON, ORIGIN} = DEFAULT_SWIPE;
+
     await applyClientMethod({
       methodName: SWIPE,
       args: {
