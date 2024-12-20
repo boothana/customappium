@@ -121,10 +121,10 @@ const Session = (props) => {
                   children: provider.tab(props),
                 };
               }),
-              {
-                label: <span className="addCloudProviderTab">{t('Select Cloud Providers')}</span>,
-                key: ADD_CLOUD_PROVIDER_TAB_KEY,
-              },
+              // {
+              //   label: <span className="addCloudProviderTab">{t('Select Cloud Providers')}</span>,
+              //   key: ADD_CLOUD_PROVIDER_TAB_KEY,
+              // },
             ]}
           />
           <AdvancedServerParams {...props} />
@@ -207,7 +207,7 @@ const Session = (props) => {
         </div>
       </div>
     </Spin>,
-    <CloudProviderSelector {...props} key="CloudProviderSelector" />,
+    // <CloudProviderSelector {...props} key="CloudProviderSelector" />,
   ];
 };
 

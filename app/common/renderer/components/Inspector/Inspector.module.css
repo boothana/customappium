@@ -112,7 +112,7 @@
 
 .inspector-main .interaction-tab-container :global(.action-col) {
   min-width: 50%;
-  max-width: 50%;
+  max-width: 100%;
 }
 
 .inspector-main .interaction-tab-container :global(.ant-card) {

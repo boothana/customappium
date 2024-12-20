@@ -5,21 +5,29 @@ class ActionDeduplicator {
     this.sentActions = [];
     this.isApiCalling = false;
     this.apiEndpoint =
-      'https://6ea3-2405-201-d014-2152-541b-9ef8-fcdf97-3e28.ngrok-free.app/api/test-steps';
+      'https://f6e0-2405-201-d014-2152-71a7-5aa0-8cab-e0d7.ngrok-free.app/api/mobile-automation/actions';
+    this.sequenceCounter = 1;
   }
 
   findNewActions(currentActions) {
-    return currentActions.filter(
-      (newAction) =>
-        !this.sentActions.some(
-          (sentAction) => JSON.stringify(sentAction) === JSON.stringify(newAction),
-        ),
-    );
+    return currentActions
+      .map((action, index) => ({
+        ...action,
+        timestamp: action.timestamp || Date.now(),
+        sequenceNumber: this.sequenceCounter++,
+      }))
+      .filter(
+        (newAction) =>
+          !this.sentActions.some(
+            (sentAction) => JSON.stringify(sentAction) === JSON.stringify(newAction),
+          ),
+      );
   }
 
   reset() {
     this.sentActions = [];
     this.isApiCalling = false;
+    this.sequenceCounter = 1;
     console.log('ActionDeduplicator: Complete reset performed');
   }
 
@@ -36,12 +44,27 @@ export function sendtonogrunt(...data) {
   let port;
   let path;
   let https;
+  let strategyMap;
   let desiredCapabilities;
   let recordedActions;
 
-  [host, port, path, https, desiredCapabilities, recordedActions] = data;
+  [host, port, path, https, strategyMap, desiredCapabilities, recordedActions] = data;
 
-  const uniqueNewActions = actionDeduplicator.findNewActions(recordedActions);
+  const enhancedActions = recordedActions.map((action, index) => {
+    const enhancedAction = {
+      ...action,
+      timestamp: action.timestamp || Date.now(),
+      sequenceNumber: index + 1,
+    };
+
+    if (strategyMap && Array.isArray(strategyMap)) {
+      enhancedAction.strategyMap = strategyMap;
+    }
+
+    return enhancedAction;
+  });
+
+  const uniqueNewActions = actionDeduplicator.findNewActions(enhancedActions);
 
   console.log('Unique New Actions to Send:', uniqueNewActions);
 
@@ -73,8 +96,17 @@ async function sendtonogruntapi(event) {
 
   try {
     actionDeduplicator.isApiCalling = true;
+    const token = sessionStorage.getItem('token');
+    if (!token) {
+      console.error('No token found');
+      return false;
+    }
 
-    const res = await axios.post(actionDeduplicator.apiEndpoint, event);
+    const res = await axios.post(actionDeduplicator.apiEndpoint, event, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
     if (res.data.status === 'ok') {
       actionDeduplicator.sentActions = [...actionDeduplicator.sentActions, ...event];
@@ -92,83 +124,3 @@ async function sendtonogruntapi(event) {
 }
 
 export const deduplicator = actionDeduplicator;
-
-// import axios from 'axios';
-
-// class ActionDeduplicator {
-//   constructor() {
-//     this.sentActions = [];
-//     this.isApiCalling = false;
-//     this.apiEndpoint = 'http://localhost:8080/api/test-steps';
-//   }
-
-//   findNewActions(currentActions) {
-//     // Find actions that haven't been sent before
-//     return currentActions.slice(this.sentActions.length);
-//   }
-
-//   reset() {
-//     this.sentActions = [];
-//     this.isApiCalling = false;
-//     console.log('ActionDeduplicator: Complete reset performed');
-//   }
-
-//   clearSentActions() {
-//     this.sentActions = [];
-//     console.log('ActionDeduplicator: Sent actions cleared');
-//   }
-// }
-
-// const actionDeduplicator = new ActionDeduplicator();
-
-// export function sendtonogrunt(...data) {
-//   let host;
-//   let port;
-//   let path;
-//   let https;
-//   let desiredCapabilities;
-//   let recordedActions;
-
-//   [host, port, path, https, desiredCapabilities, recordedActions] = data;
-
-//   // Find only the new actions that haven't been sent before
-//   const uniqueNewActions = actionDeduplicator.findNewActions(recordedActions);
-
-//   // Log the details of the actions being sent
-//   console.log('Total Recorded Actions:', recordedActions.length);
-//   console.log('Actions Already Sent:', actionDeduplicator.sentActions.length);
-//   console.log('New Actions to Send:', uniqueNewActions.length);
-//   console.log('New Actions Details:', JSON.stringify(uniqueNewActions, null, 2));
-
-//   if (uniqueNewActions.length > 0) {
-//     // Simulated API call with logging
-//     console.log('Simulating API call with new actions');
-
-//     // Update sent actions to mark all current actions as processed
-//     actionDeduplicator.sentActions = new Array(recordedActions.length).fill(true);
-
-//     console.log(
-//       'Marked all current actions as sent. Sent actions count:',
-//       actionDeduplicator.sentActions.length,
-//     );
-
-//     return Promise.resolve(true);
-//   }
-
-//   return Promise.resolve(false);
-// }
-
-// export function resetflag(resetType = 'full') {
-//   switch (resetType) {
-//     case 'full':
-//       actionDeduplicator.reset();
-//       break;
-//     case 'clear':
-//       actionDeduplicator.clearSentActions();
-//       break;
-//     default:
-//       console.log('Invalid reset type');
-//   }
-// }
-
-// export const deduplicator = actionDeduplicator;

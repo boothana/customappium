@@ -193,6 +193,7 @@ export function selectElement(path) {
     const isNative = currentContext === NATIVE_APP;
     // Set the selected element in the source tree
     const selectedElement = findJSONElementByPath(path, sourceJSON);
+    console.log('Selected Element, selectElement function', selectedElement);
     dispatch({type: SELECT_ELEMENT, selectedElement});
 
     // Expand all of this element's ancestors so that it's visible in the source tree
